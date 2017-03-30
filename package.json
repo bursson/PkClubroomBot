@@ -1,0 +1,24 @@
+{
+  "name": "pkclubroombot",
+  "version": "1.0.0",
+  "description": "Bot reporting the status of Pullonkaula's clubroom",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bursson/PkClubroomBot.git"
+  },
+  "keywords": [
+    "pullonkaula",
+    "telegram",
+    "bot"
+  ],
+  "author": "Oskari Burri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bursson/PkClubroomBot/issues"
+  },
+  "homepage": "https://github.com/bursson/PkClubroomBot#readme"
+}
