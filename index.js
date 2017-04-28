@@ -13,7 +13,7 @@ var moment = require('moment-timezone');
 var TelegramBot = require('node-telegram-bot-api')
 var TelegramBotToken = process.env.TelegramBotApiKey;
 
-var bot = new TelegramBot(TelegramBotToken, {polling: false})
+var bot = new TelegramBot(TelegramBotToken, { polling: false })
 
 exports.handler = function (event, context, callback) {
     // TODO: Separate group messages from direct messages
@@ -25,22 +25,37 @@ exports.handler = function (event, context, callback) {
     var msg = event.message.text.toLowerCase().split(' ');
     if (msg[0] == null) return;
     console.log(msg);
-    switch (msg[0]){
+    switch (msg[0]) {
         case "/valot":
             //bot.sendMessage(chat_id, "Got it")
-            var value = getLastLights().then(function(data){
+            var value = getLastLights().then(function (data) {
+
                 var awstime = moment.tz(Date.now(), "GMT")
                 var timestamp = moment.tz(Number(data), "GMT")
                 console.log(timestamp.format())
                 console.log("AWS: " + awstime.format())
-                timestamp.tz("Europe/Helsinki")
-                console.log(timestamp.format('HH:mm DD-MM'))
-                bot.sendMessage(chat_id, "Valot olivat viimeksi päällä klo " + timestamp.format('HH:mm DD.MM.') )
+                var response = "";
+
+                if (awstime - timestamp < 15000) {
+
+                    response = "Valot ovat päällä";
+
+                } else {
+
+                    timestamp.tz("Europe/Helsinki")
+                    console.log(timestamp.format('HH:mm DD-MM'))
+                    response = "Valot olivat viimeksi päällä klo " + timestamp.format('HH:mm DD.MM.')
+                }
+
+                bot.sendMessage(chat_id, response)
+
             })
-            
-            //context.succeed("Responded with light status")
+        default:
+            bot.sendMessage(chat_id, "Unknown command")
+
+        //context.succeed("Responded with light status")
     }
-    
+
 
 }
 
@@ -57,16 +72,25 @@ function getLastLights() {
             if (data.Table.TableStatus == 'ACTIVE') {
                 console.log("Table found")
                 var params = {
-                    TableName: tableName
+                    TableName: tableName,
+                    FilterExpression: "#l = :t",
+                    ExpressionAttributeNames: {
+                        "#l": "lights"
+
+                    },
+                    ExpressionAttributeValues: {
+                        ":t": true
+                    }
                 };
 
                 return dynamodbclient.scan(params).promise().then(function (data) {
-                    console.log(data.Items[data.Items.length-1].timestamp)                    
-                    resolve (data.Items[data.Items.length-1].timestamp)
+                    console.log(data);
+                    console.log(data.Items[data.Items.length - 1].timestamp)
+                    resolve(data.Items[data.Items.length - 1].timestamp)
                 }
                 );
 
-            }else{
+            } else {
                 reject("No table found")
             }
         })
