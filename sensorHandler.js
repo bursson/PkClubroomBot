@@ -3,7 +3,7 @@
 var doc = require('dynamodb-doc');
 var dynamodb = new doc.DynamoDB();
 
-var created = false;
+var created;
 
 exports.handler = function (event, context, callback) {
 
@@ -18,14 +18,14 @@ exports.handler = function (event, context, callback) {
 
 
     if ("lights" in body) {
-        item.lights = body.lights;
+        item.lights = (body.lights == 'true');
     } else if ("coffeeBrew" in body) {
         item.coffee = body.coffeeBrew;
     } else {
         context.fail('ERROR: Datatype unknown');
     }
 
-    let timestamp = 0;
+    let timestamp;
 
     if ("time" in body) {
         timestamp = new Date(body.time);
@@ -33,12 +33,12 @@ exports.handler = function (event, context, callback) {
 
     } else {
         timestamp = new Date();
-        item.
-        timestamp = timestamp.getTime();
+        item.timestamp = timestamp.getTime();
     }
-    // Set the name YYYY-MM
-    var tableName = timestamp.getFullYear() + "-" + ("0" + (timestamp.getMonth() + 1)).slice(-2);
+    var tableName = timestamp.getFullYear() + "-" + timestamp.getMonth();
     console.log("Item:\n", item);
+
+    created = false;
 
     checkForTable(tableName);
 
@@ -65,14 +65,19 @@ exports.handler = function (event, context, callback) {
     }, 500);
 
 }
-
+// Check if table with name exists
 function checkForTable(name) {
     var params = {};
     dynamodb.listTables(params, function (err, data) {
         if (err) console.log(err); // an error occurred
         else {
+            console.log("name is: " + name);
+            console.log(data.TableNames)
+            console.log("Tablelisting: ");
             console.log(data);
             if (data.TableNames.indexOf(name) != -1) {
+                console.log("Tablelisting: ");
+                console.log(data);
                 created = true;
                 return true;
             } else {
@@ -82,7 +87,7 @@ function checkForTable(name) {
         }
     });
 }
-
+// Check if the table is created and ready to use
 function checkForTableStatus(name) {
     var params = {
         TableName: name
@@ -99,7 +104,7 @@ function checkForTableStatus(name) {
     });
 
 }
-
+// Create a new table to the database
 function createTable(name) {
     var params = {
         TableName: name,
@@ -124,8 +129,8 @@ function createTable(name) {
             }
         ],
         ProvisionedThroughput: {
-            ReadCapacityUnits: 10,
-            WriteCapacityUnits: 10
+            ReadCapacityUnits: 5,
+            WriteCapacityUnits: 5
         }
     };
     dynamodb.createTable(params, function (err, data) {
