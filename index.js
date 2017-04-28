@@ -11,7 +11,7 @@ var dynamodb = new doc.DynamoDB();
 var moment = require('moment-timezone');
 
 var TelegramBot = require('node-telegram-bot-api')
-var TelegramBotToken = '331050054:AAFuGtDrR4g7InjUPIwCGaRH1Pmpd8XUsAM';
+var TelegramBotToken = process.env.TelegramBotApiKey;
 
 var bot = new TelegramBot(TelegramBotToken, {polling: false})
 
