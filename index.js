@@ -14,22 +14,34 @@ var TelegramBotToken = process.env.TelegramBotApiKey;
 
 var bot = new TelegramBot(TelegramBotToken, { polling: false })
 
-exports.handler = function (event, context, callback) {
-    // TODO: Separate group messages from direct messages
-    var chat_id = event.message.chat.id;
+// Milliseconds for the maximum delay when lights are concidered to be on
+const MAX_DELAY_FOR_ON = 60000
 
+exports.handler = function (event, context, callback) {
     console.log("Request received:\n", JSON.stringify(event));
     console.log("Context received:\n", JSON.stringify(context));
 
-    // Split message
-    var msg = event.message.text.toLowerCase().split(' ');
-    if (msg[0] == null) return;
-    console.log(msg);
+    // TODO: Separate group messages from direct messages
+    var chat_id = event.message.chat.id;
+    // Only process message if it is a botcommand (Telegram sends a lot of other info)
+    if (!("text" in event.message)) {
+        context.succeed("Nothing here for me")
+    }
+    else if (!event.message.hasOwnProperty("entities")) {
+        context.succeed("Nothing here for me")
+    }
+    else if (event.message.entities[0].type != "bot_command") {
+        context.succeed("Nothing here for me")
+    } else {
 
-    // Act according to the command
-    switch (msg[0]) {
-        case "/valot":
-            var value = getLastLights().then(function (data) {
+        // Split message
+        var msg = event.message.text.toLowerCase().split(' ');
+        if (msg[0] == null) context.succeed("No message");
+        console.log(msg);
+
+        // Act according to the command
+        if (msg[0] == "/valot" || msg[0] == "/valot@aws_valobot") {
+            var task = getLastLights().then(function (data) {
 
                 // Get current AWS time and compare it to the last data
                 var awstime = moment.tz(Date.now(), "GMT")
@@ -39,7 +51,7 @@ exports.handler = function (event, context, callback) {
                 var response = "";
 
                 // If the lights were on inside the tolerance
-                if (awstime - timestamp < 15000) {
+                if (awstime - timestamp < MAX_DELAY_FOR_ON) {
                     response = "Valot ovat päällä";
                 } else {
                     // If not send the last time they were on
@@ -49,13 +61,15 @@ exports.handler = function (event, context, callback) {
                 }
 
                 bot.sendMessage(chat_id, response)
-
+                //context.succeed("Message handled")
             })
-        default:
-            bot.sendMessage(chat_id, "Unknown command")
+
+        } else {
+            console.log("Unkown command: " + msg[0])
+            bot.sendMessage(chat_id, "Unknown command: " + msg[0])
+            context.succeed("Unkown command: " + msg[0])
+        }
     }
-
-
 }
 
 // Gets the last timestamp when the lights were on. Returns a Promise which resolves
