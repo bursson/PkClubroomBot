@@ -1,9 +1,10 @@
 "use strict"
-// TODO: Reduce this
+
 var AWS = require("aws-sdk");
-var doc = require('dynamodb-doc');
+
+// DynamoDB access
 var dynamodbclient = new AWS.DynamoDB.DocumentClient();
-var dynamodb = new doc.DynamoDB();
+var dynamodb = new AWS.DynamoDB();
 
 // For manipulating timezones
 var moment = require('moment-timezone');
@@ -18,10 +19,10 @@ var bot = new TelegramBot(TelegramBotToken, { polling: false })
 const MAX_DELAY_FOR_ON = 60000
 
 exports.handler = function (event, context, callback) {
+    // Print info to CloudWatch for possible debugging
     console.log("Request received:\n", JSON.stringify(event));
     console.log("Context received:\n", JSON.stringify(context));
 
-    // TODO: Separate group messages from direct messages
     var chat_id = event.message.chat.id;
     // Only process message if it is a botcommand (Telegram sends a lot of other info)
     if (!("text" in event.message)) {
@@ -66,8 +67,8 @@ exports.handler = function (event, context, callback) {
 
         } else {
             console.log("Unkown command: " + msg[0])
-            bot.sendMessage(chat_id, "Unknown command: " + msg[0])
-            context.succeed("Unkown command: " + msg[0])
+            bot.sendMessage(chat_id, "Unknown command: " + msg[0])            
+            //context.succeed("Unkown command: " + msg[0])
         }
     }
 }
