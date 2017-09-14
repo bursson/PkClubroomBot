@@ -39,3 +39,9 @@ jspm_packages
 \.eslintrc\.json
 
 *.zip
+
+*.pdf
+
+Keyes/
+
+*.rar
